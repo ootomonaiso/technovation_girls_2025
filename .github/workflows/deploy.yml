@@ -14,19 +14,19 @@ concurrency:
   group: deploy-${{ github.run_id }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    working-directory: pro
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: pro
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 18
@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Set environment variables
+      - name: Inject Firebase env vars
         run: |
           echo "REACT_APP_FIREBASE_API_KEY=${{ secrets.REACT_APP_FIREBASE_API_KEY }}" >> .env
           echo "REACT_APP_FIREBASE_AUTH_DOMAIN=${{ secrets.REACT_APP_FIREBASE_AUTH_DOMAIN }}" >> .env
@@ -43,14 +43,14 @@ jobs:
           echo "REACT_APP_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}" >> .env
           echo "REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}" >> .env
 
-      - name: Build project
+      - name: Build
         run: npm run build
 
-      - name: Upload GitHub Pages artifact
+      - name: Upload artifact (fixed)
         uses: actions/upload-artifact@v4
         with:
           name: github-pages
-          path: build
+          path: build  # ← pro/内にいるので build でOK！
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v1
