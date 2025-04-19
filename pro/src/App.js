@@ -3,14 +3,17 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import ChatRoom from "./pages/ChatRoom";
+import CreateTopic from "./pages/CreateTopic";
+import SetupUser from "./pages/SetupUser";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Header from "./components/Header";
 
 const App = () => {
   return (
     <Router>
+      <Header />
       <Routes>
         <Route path="/login" element={<Login />} />
-
         <Route
           path="/"
           element={
@@ -19,7 +22,22 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path="/create"
+          element={
+            <ProtectedRoute>
+              <CreateTopic />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/setup"
+          element={
+            <ProtectedRoute>
+              <SetupUser />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/topics/:topicId"
           element={

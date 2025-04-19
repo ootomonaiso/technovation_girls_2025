@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { db } from "../firebaseConfig";
+import { db, auth } from "../firebaseConfig";
 import {
   collection,
   addDoc,
@@ -8,13 +8,45 @@ import {
   orderBy,
   onSnapshot,
   serverTimestamp,
+  doc,
+  getDoc,
 } from "firebase/firestore";
+
+import {
+  Container,
+  Paper,
+  Typography,
+  Box,
+  TextField,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+} from "@mui/material";
 
 const ChatRoom = () => {
   const { topicId } = useParams();
+  const [topicTitle, setTopicTitle] = useState("読み込み中...");
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const bottomRef = useRef(null);
 
+  // トピックタイトルの取得
+  useEffect(() => {
+    const fetchTopicTitle = async () => {
+      const topicRef = doc(db, "topics", topicId);
+      const snapshot = await getDoc(topicRef);
+      if (snapshot.exists()) {
+        setTopicTitle(snapshot.data().title || "無題のルーム");
+      } else {
+        setTopicTitle("不明なルーム");
+      }
+    };
+
+    fetchTopicTitle();
+  }, [topicId]);
+
+  // メッセージ取得
   useEffect(() => {
     const q = query(
       collection(db, "topics", topicId, "messages"),
@@ -27,31 +59,95 @@ const ChatRoom = () => {
     return () => unsubscribe();
   }, [topicId]);
 
+  // スクロール追従
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   const handleSendMessage = async () => {
     if (newMessage.trim() === "") return;
+
     await addDoc(collection(db, "topics", topicId, "messages"), {
       text: newMessage,
       createdAt: serverTimestamp(),
+      senderId: auth.currentUser?.uid,
+      senderName: auth.currentUser?.displayName || "匿名",
     });
+
     setNewMessage("");
   };
 
   return (
-    <div style={{ padding: 40 }}>
-      <h2>チャットルーム: {topicId}</h2>
-      <div style={{ maxHeight: 300, overflowY: "scroll", border: "1px solid #ccc", padding: 10 }}>
-        {messages.map((msg) => (
-          <p key={msg.id}>{msg.text}</p>
-        ))}
-      </div>
-      <input
-        value={newMessage}
-        onChange={(e) => setNewMessage(e.target.value)}
-        placeholder="メッセージを入力"
-        style={{ width: "80%" }}
-      />
-      <button onClick={handleSendMessage}>送信</button>
-    </div>
+    <Container maxWidth="sm" sx={{ mt: 4 }}>
+      <Typography variant="h5" gutterBottom>
+        {topicTitle}
+      </Typography>
+
+      <Paper
+        elevation={3}
+        sx={{
+          p: 2,
+          height: 400,
+          overflowY: "auto",
+          mb: 2,
+          bgcolor: "#f9f9f9",
+          borderRadius: 2,
+        }}
+      >
+        <List>
+          {messages.map((msg) => (
+            <ListItem
+              key={msg.id}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems:
+                  msg.senderId === auth.currentUser?.uid ? "flex-end" : "flex-start",
+              }}
+            >
+              <ListItemText
+                primary={msg.text}
+                secondary={msg.senderName || "匿名"}
+                sx={{
+                  bgcolor:
+                    msg.senderId === auth.currentUser?.uid
+                      ? "#1976d2"
+                      : "#e0e0e0",
+                  color:
+                    msg.senderId === auth.currentUser?.uid
+                      ? "#fff"
+                      : "#000",
+                  px: 2,
+                  py: 1,
+                  borderRadius: 2,
+                  maxWidth: "80%",
+                }}
+              />
+            </ListItem>
+          ))}
+          <div ref={bottomRef} />
+        </List>
+      </Paper>
+
+      <Box display="flex" gap={1}>
+        <TextField
+          fullWidth
+          placeholder="メッセージを入力"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSendMessage();
+          }}
+        />
+        <Button
+          variant="contained"
+          onClick={handleSendMessage}
+          disabled={!newMessage.trim()}
+        >
+          送信
+        </Button>
+      </Box>
+    </Container>
   );
 };
 
