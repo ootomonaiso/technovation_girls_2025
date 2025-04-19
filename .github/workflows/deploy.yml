@@ -2,8 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -17,55 +16,54 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: github-pages          # Pages 用の環境名
 
     steps:
+      # 1. ソース取得
       - name: ✅ Checkout
         uses: actions/checkout@v4
 
+      # 2. Node.js 準備
       - name: 🧰 Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
+      # 3. 依存インストール
       - name: 📦 Install dependencies
         run: npm ci
         working-directory: pro
 
+      # 4. Firebase 環境変数を書き込む
       - name: 🔐 Inject Firebase environment variables
         run: |
-          echo "REACT_APP_FIREBASE_API_KEY=${{ secrets.REACT_APP_FIREBASE_API_KEY }}" >> .env
-          echo "REACT_APP_FIREBASE_AUTH_DOMAIN=${{ secrets.REACT_APP_FIREBASE_AUTH_DOMAIN }}" >> .env
-          echo "REACT_APP_FIREBASE_PROJECT_ID=${{ secrets.REACT_APP_FIREBASE_PROJECT_ID }}" >> .env
-          echo "REACT_APP_FIREBASE_STORAGE_BUCKET=${{ secrets.REACT_APP_FIREBASE_STORAGE_BUCKET }}" >> .env
-          echo "REACT_APP_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}" >> .env
-          echo "REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}" >> .env
-        working-directory: pro
+          echo "REACT_APP_FIREBASE_API_KEY=${{ secrets.REACT_APP_FIREBASE_API_KEY }}"       >> pro/.env
+          echo "REACT_APP_FIREBASE_AUTH_DOMAIN=${{ secrets.REACT_APP_FIREBASE_AUTH_DOMAIN }}" >> pro/.env
+          echo "REACT_APP_FIREBASE_PROJECT_ID=${{ secrets.REACT_APP_FIREBASE_PROJECT_ID }}"   >> pro/.env
+          echo "REACT_APP_FIREBASE_STORAGE_BUCKET=${{ secrets.REACT_APP_FIREBASE_STORAGE_BUCKET }}" >> pro/.env
+          echo "REACT_APP_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}" >> pro/.env
+          echo "REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}"           >> pro/.env
 
+      # 5. ビルド
       - name: 🛠️ Build the project
         run: npm run build
         working-directory: pro
 
+      # 6. ビルド内容を確認（任意・デバッグ用）
       - name: 🧪 Show build contents (debug)
         run: |
           echo "Working dir: $(pwd)"
-          echo "--- build/ ---"
-          ls -la build || echo "❌ build/ not found"
-          echo "--- build/index.html ---"
-          cat build/index.html || echo "❌ index.html not found"
-        working-directory: pro
+          echo "--- pro/build/ ---"
+          ls -la pro/build || echo "❌ build/ not found"
+          echo "--- index.html ---"
+          cat pro/build/index.html | head -n 20 || echo "❌ index.html not found"
 
-      - name: 📤 Prepare artifact directory
-        run: |
-          cd pro
-          mv build ../build
-
-      - name: 📤 Upload artifact
-        uses: actions/upload-artifact@v4
+      # 7. GitHub Pages 用アーティファクトをアップロード
+      - name: 📤 Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3   # ← 専用アクション
         with:
-          name: github-pages
-          path: build
+          path: pro/build                        # React の build 出力
 
+      # 8. デプロイ
       - name: 🚀 Deploy to GitHub Pages
-        uses: actions/deploy-pages@v1
-        with:
-          artifact_name: github-pages
+        uses: actions/deploy-pages@v4            # ← v4 に更新
