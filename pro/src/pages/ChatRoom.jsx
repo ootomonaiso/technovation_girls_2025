@@ -22,6 +22,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  Avatar,
 } from "@mui/material";
 
 const ChatRoom = () => {
@@ -53,7 +54,10 @@ const ChatRoom = () => {
       orderBy("createdAt")
     );
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const msgs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const msgs = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       setMessages(msgs);
     });
     return () => unsubscribe();
@@ -72,6 +76,7 @@ const ChatRoom = () => {
       createdAt: serverTimestamp(),
       senderId: auth.currentUser?.uid,
       senderName: auth.currentUser?.displayName || "匿名",
+      senderAvatar: auth.currentUser?.photoURL || "",
     });
 
     setNewMessage("");
@@ -100,29 +105,40 @@ const ChatRoom = () => {
               key={msg.id}
               sx={{
                 display: "flex",
-                flexDirection: "column",
-                alignItems:
-                  msg.senderId === auth.currentUser?.uid ? "flex-end" : "flex-start",
+                flexDirection:
+                  msg.senderId === auth.currentUser?.uid ? "row-reverse" : "row",
+                alignItems: "flex-start",
+                gap: 1,
+                mb: 1,
               }}
             >
-              <ListItemText
-                primary={msg.text}
-                secondary={msg.senderName || "匿名"}
-                sx={{
-                  bgcolor:
-                    msg.senderId === auth.currentUser?.uid
-                      ? "#1976d2"
-                      : "#e0e0e0",
-                  color:
-                    msg.senderId === auth.currentUser?.uid
-                      ? "#fff"
-                      : "#000",
-                  px: 2,
-                  py: 1,
-                  borderRadius: 2,
-                  maxWidth: "80%",
-                }}
+              {/* アバター */}
+              <Avatar
+                src={msg.senderAvatar || ""}
+                alt={msg.senderName || "匿名"}
+                sx={{ width: 32, height: 32 }}
               />
+
+              {/* 吹き出し＋名前 */}
+              <Box>
+                <ListItemText
+                  primary={msg.text}
+                  sx={{
+                    bgcolor:
+                      msg.senderId === auth.currentUser?.uid ? "#1976d2" : "#e0e0e0",
+                    color:
+                      msg.senderId === auth.currentUser?.uid ? "#fff" : "#000",
+                    px: 2,
+                    py: 1,
+                    borderRadius: 2,
+                    maxWidth: "90vw", // ← 横幅制限を拡張
+                    wordBreak: "break-word", // ← 長文折り返し対応
+                  }}
+                />
+                <Typography variant="caption" sx={{ color: "#333", ml: 1 }}>
+                  {msg.senderName || "匿名"}
+                </Typography>
+              </Box>
             </ListItem>
           ))}
           <div ref={bottomRef} />
