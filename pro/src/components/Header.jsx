@@ -28,7 +28,6 @@ const Header = () => {
         position: "relative",
       }}
     >
-      {/* 左ナビ（スマホなら簡略化） */}
       <Box display="flex" alignItems="center" gap={2}>
         <Link to="/" style={{ color: "#fff", textDecoration: "none", fontWeight: "bold" }}>
           {isMobile ? "🏠" : "ホーム"}
