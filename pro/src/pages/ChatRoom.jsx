@@ -12,7 +12,6 @@ import {
   getDoc,
   setDoc,
   deleteDoc,
-  getDocs,
 } from "firebase/firestore";
 
 import {
@@ -30,16 +29,19 @@ import {
   Badge,
 } from "@mui/material";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
+import ReplyIcon from "@mui/icons-material/Reply";
 
 const ChatRoom = () => {
   const { topicId } = useParams();
   const [topicTitle, setTopicTitle] = useState("読み込み中...");
   const [messages, setMessages] = useState([]);
-  const [likesMap, setLikesMap] = useState({});
+  const [likeCountMap, setLikeCountMap] = useState({});
+  const [likedByUserMap, setLikedByUserMap] = useState({});
   const [newMessage, setNewMessage] = useState("");
+  const [replyTo, setReplyTo] = useState(null);
   const bottomRef = useRef(null);
 
-  // トピックタイトルの取得
+  // トピックタイトル取得
   useEffect(() => {
     const fetchTopicTitle = async () => {
       const topicRef = doc(db, "topics", topicId);
@@ -50,34 +52,42 @@ const ChatRoom = () => {
         setTopicTitle("不明なルーム");
       }
     };
-
     fetchTopicTitle();
   }, [topicId]);
 
-  // メッセージ取得 & いいね数取得
+  // メッセージ取得
   useEffect(() => {
     const q = query(
       collection(db, "topics", topicId, "messages"),
       orderBy("createdAt")
     );
-    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const msgs = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
       setMessages(msgs);
-
-      const newLikesMap = {};
-      for (const msg of msgs) {
-        const likesSnapshot = await getDocs(
-          collection(db, "topics", topicId, "messages", msg.id, "likes")
-        );
-        newLikesMap[msg.id] = likesSnapshot.size;
-      }
-      setLikesMap(newLikesMap);
     });
     return () => unsubscribe();
   }, [topicId]);
+
+  // いいね状態監視
+  useEffect(() => {
+    const unsubscribes = [];
+
+    messages.forEach((msg) => {
+      const likesRef = collection(db, "topics", topicId, "messages", msg.id, "likes");
+      const unsub = onSnapshot(likesRef, (snapshot) => {
+        const count = snapshot.size;
+        const liked = snapshot.docs.some(doc => doc.id === auth.currentUser?.uid);
+        setLikeCountMap((prev) => ({ ...prev, [msg.id]: count }));
+        setLikedByUserMap((prev) => ({ ...prev, [msg.id]: liked }));
+      });
+      unsubscribes.push(unsub);
+    });
+
+    return () => unsubscribes.forEach((u) => u());
+  }, [messages, topicId]);
 
   // スクロール追従
   useEffect(() => {
@@ -93,19 +103,20 @@ const ChatRoom = () => {
       senderId: auth.currentUser?.uid,
       senderName: auth.currentUser?.displayName || "匿名",
       senderAvatar: auth.currentUser?.photoURL || "",
+      replyTo: replyTo ? { id: replyTo.id, senderName: replyTo.senderName } : null,
     });
 
     setNewMessage("");
+    setReplyTo(null);
   };
 
   const handleLikeToggle = async (msgId) => {
     const likeRef = doc(db, "topics", topicId, "messages", msgId, "likes", auth.currentUser.uid);
-    const currentLike = await getDoc(likeRef);
-
-    if (currentLike.exists()) {
-      await deleteDoc(likeRef); // いいね解除
+    const current = await getDoc(likeRef);
+    if (current.exists()) {
+      await deleteDoc(likeRef);
     } else {
-      await setDoc(likeRef, {}); // いいね追加
+      await setDoc(likeRef, {});
     }
   };
 
@@ -139,15 +150,17 @@ const ChatRoom = () => {
                 mb: 1,
               }}
             >
-              {/* アバター */}
               <Avatar
                 src={msg.senderAvatar || ""}
                 alt={msg.senderName || "匿名"}
                 sx={{ width: 32, height: 32 }}
               />
-
-              {/* 吹き出し＋名前＋いいね */}
               <Box>
+                {msg.replyTo && (
+                  <Typography variant="caption" sx={{ color: "#999" }}>
+                    ↪︎ {msg.replyTo.senderName} に返信
+                  </Typography>
+                )}
                 <ListItemText
                   primary={msg.text}
                   sx={{
@@ -169,10 +182,17 @@ const ChatRoom = () => {
                   <IconButton
                     size="small"
                     onClick={() => handleLikeToggle(msg.id)}
+                    sx={{ color: likedByUserMap[msg.id] ? "#1976d2" : "gray" }}
                   >
-                    <Badge badgeContent={likesMap[msg.id] || 0} color="primary">
+                    <Badge badgeContent={likeCountMap[msg.id] || 0} color="primary">
                       <ThumbUpIcon fontSize="small" />
                     </Badge>
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={() => setReplyTo({ id: msg.id, senderName: msg.senderName || "匿名" })}
+                  >
+                    <ReplyIcon fontSize="small" />
                   </IconButton>
                 </Box>
               </Box>
@@ -181,6 +201,14 @@ const ChatRoom = () => {
           <div ref={bottomRef} />
         </List>
       </Paper>
+
+      {replyTo && (
+        <Box mb={1}>
+          <Typography variant="caption" color="text.secondary">
+            {replyTo.senderName} に返信中
+          </Typography>
+        </Box>
+      )}
 
       <Box display="flex" gap={1}>
         <TextField
