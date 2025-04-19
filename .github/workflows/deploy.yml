@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ✅ Checkout repository
+      - name: ✅ Checkout
         uses: actions/checkout@v4
 
       - name: 🧰 Setup Node.js
@@ -31,7 +31,7 @@ jobs:
         run: npm ci
         working-directory: pro
 
-      - name: 🔐 Inject Firebase env vars
+      - name: 🔐 Inject Firebase environment variables
         run: |
           echo "REACT_APP_FIREBASE_API_KEY=${{ secrets.REACT_APP_FIREBASE_API_KEY }}" >> .env
           echo "REACT_APP_FIREBASE_AUTH_DOMAIN=${{ secrets.REACT_APP_FIREBASE_AUTH_DOMAIN }}" >> .env
@@ -41,15 +41,18 @@ jobs:
           echo "REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}" >> .env
         working-directory: pro
 
-      - name: 🛠️ Build the project
+      - name: 🛠️ Build
         run: npm run build
         working-directory: pro
 
-      - name: 📤 Upload GitHub Pages artifact
+      - name: 🔍 Show build directory (debug)
+        run: ls -la pro/build
+
+      - name: 📤 Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: github-pages
-          path: pro/build  # ← working-directory指定しないのでここだけpro/build！
+          path: pro/build  # ← ここがポイント！
 
       - name: 🚀 Deploy to GitHub Pages
         uses: actions/deploy-pages@v1
