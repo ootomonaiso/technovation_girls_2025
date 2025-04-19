@@ -43,6 +43,10 @@ jobs:
           echo "REACT_APP_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}" >> .env
           echo "REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}" >> .env
 
+      - name: 🧪 Debug .env contents
+        run: cat .env || echo ".env not found"
+        working-directory: pro
+
       - name: 🛠️ Build project
         run: npm run build
 
@@ -58,8 +62,8 @@ jobs:
       - name: 📤 Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: github-pages
-          path: build  # ← pro/内のbuildディレクトリ（working-directoryがpro）
+                name: github-pages
+                path: build  # ← pro/内のbuildディレクトリ（working-directoryがpro）
 
       - name: 🚀 Deploy to GitHub Pages
         uses: actions/deploy-pages@v1
