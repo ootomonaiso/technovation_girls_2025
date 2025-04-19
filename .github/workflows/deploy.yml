@@ -50,7 +50,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: github-pages
-          path: build  # ← working-directory: pro が有効なので OK！
+          path: pro/build  
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v1
