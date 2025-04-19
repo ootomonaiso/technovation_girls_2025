@@ -41,12 +41,18 @@ jobs:
           echo "REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}" >> .env
         working-directory: pro
 
-      - name: 🛠️ Build
+      - name: 🛠️ Build the project
         run: npm run build
         working-directory: pro
 
-      - name: 🔍 Show build directory (debug)
-        run: ls -la pro/build
+      - name: 🧪 Show build contents (debug)
+        run: |
+          echo "Working dir: $(pwd)"
+          echo "--- build/ ---"
+          ls -la build || echo "❌ build/ not found"
+          echo "--- build/index.html ---"
+          cat build/index.html || echo "❌ index.html not found"
+        working-directory: pro
 
       - name: 📤 Upload artifact
         uses: actions/upload-artifact@v4
