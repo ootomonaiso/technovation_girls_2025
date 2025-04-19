@@ -11,8 +11,8 @@ import {
   Card,
   CardContent,
   Chip,
-  Box,
 } from "@mui/material";
+import LabelIcon from "@mui/icons-material/Label";
 
 const Home = () => {
   const [topics, setTopics] = useState([]);
@@ -38,7 +38,7 @@ const Home = () => {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Typography variant="h5" gutterBottom>
+      <Typography variant="h4" fontWeight="bold" gutterBottom>
         トピック一覧
       </Typography>
 
@@ -51,30 +51,45 @@ const Home = () => {
         onChange={(e) => setSearchTerm(e.target.value)}
       />
 
-      <Grid container spacing={3}>
+      <Grid container spacing={3} justifyContent="center">
         {filteredTopics.map((topic) => (
-          <Grid item xs={12} sm={6} md={4} key={topic.id}>
+          <Grid item key={topic.id}>
             <Card
               component={Link}
               to={`/topics/${topic.id}`}
+              elevation={3}
               sx={{
+                width: 300,
                 textDecoration: "none",
                 color: "inherit",
                 height: "100%",
-                transition: "0.2s",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                transition: "transform 0.2s ease-in-out",
                 "&:hover": {
-                  transform: "translateY(-4px)",
+                  transform: "translateY(-5px)",
                 },
               }}
             >
               <CardContent>
-                <Typography variant="h6" gutterBottom noWrap>
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  gutterBottom
+                  sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                >
                   {topic.title}
                 </Typography>
+
                 {topic.category && (
-                  <Box mt={1}>
-                    <Chip label={topic.category} size="small" color="primary" />
-                  </Box>
+                  <Chip
+                    icon={<LabelIcon />}
+                    label={topic.category}
+                    size="small"
+                    color="primary"
+                    sx={{ mt: 1 }}
+                  />
                 )}
               </CardContent>
             </Card>
