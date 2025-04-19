@@ -10,6 +10,9 @@ import {
   serverTimestamp,
   doc,
   getDoc,
+  setDoc,
+  deleteDoc,
+  getDocs,
 } from "firebase/firestore";
 
 import {
@@ -23,12 +26,16 @@ import {
   ListItem,
   ListItemText,
   Avatar,
+  IconButton,
+  Badge,
 } from "@mui/material";
+import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 
 const ChatRoom = () => {
   const { topicId } = useParams();
   const [topicTitle, setTopicTitle] = useState("読み込み中...");
   const [messages, setMessages] = useState([]);
+  const [likesMap, setLikesMap] = useState({});
   const [newMessage, setNewMessage] = useState("");
   const bottomRef = useRef(null);
 
@@ -47,18 +54,27 @@ const ChatRoom = () => {
     fetchTopicTitle();
   }, [topicId]);
 
-  // メッセージ取得
+  // メッセージ取得 & いいね数取得
   useEffect(() => {
     const q = query(
       collection(db, "topics", topicId, "messages"),
       orderBy("createdAt")
     );
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
       const msgs = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
       setMessages(msgs);
+
+      const newLikesMap = {};
+      for (const msg of msgs) {
+        const likesSnapshot = await getDocs(
+          collection(db, "topics", topicId, "messages", msg.id, "likes")
+        );
+        newLikesMap[msg.id] = likesSnapshot.size;
+      }
+      setLikesMap(newLikesMap);
     });
     return () => unsubscribe();
   }, [topicId]);
@@ -80,6 +96,17 @@ const ChatRoom = () => {
     });
 
     setNewMessage("");
+  };
+
+  const handleLikeToggle = async (msgId) => {
+    const likeRef = doc(db, "topics", topicId, "messages", msgId, "likes", auth.currentUser.uid);
+    const currentLike = await getDoc(likeRef);
+
+    if (currentLike.exists()) {
+      await deleteDoc(likeRef); // いいね解除
+    } else {
+      await setDoc(likeRef, {}); // いいね追加
+    }
   };
 
   return (
@@ -119,7 +146,7 @@ const ChatRoom = () => {
                 sx={{ width: 32, height: 32 }}
               />
 
-              {/* 吹き出し＋名前 */}
+              {/* 吹き出し＋名前＋いいね */}
               <Box>
                 <ListItemText
                   primary={msg.text}
@@ -131,13 +158,23 @@ const ChatRoom = () => {
                     px: 2,
                     py: 1,
                     borderRadius: 2,
-                    maxWidth: "90vw", // ← 横幅制限を拡張
-                    wordBreak: "break-word", // ← 長文折り返し対応
+                    maxWidth: "90vw",
+                    wordBreak: "break-word",
                   }}
                 />
-                <Typography variant="caption" sx={{ color: "#333", ml: 1 }}>
-                  {msg.senderName || "匿名"}
-                </Typography>
+                <Box display="flex" alignItems="center" gap={1} ml={1} mt={0.5}>
+                  <Typography variant="caption" sx={{ color: "#333" }}>
+                    {msg.senderName || "匿名"}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleLikeToggle(msg.id)}
+                  >
+                    <Badge badgeContent={likesMap[msg.id] || 0} color="primary">
+                      <ThumbUpIcon fontSize="small" />
+                    </Badge>
+                  </IconButton>
+                </Box>
               </Box>
             </ListItem>
           ))}
