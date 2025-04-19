@@ -19,13 +19,26 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const fetchTopics = async () => {
+    const fetchTopicsWithMessageCount = async () => {
       const querySnapshot = await getDocs(collection(db, "topics"));
-      const topicList = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const topicList = await Promise.all(
+        querySnapshot.docs.map(async (docSnap) => {
+          const topicData = { id: docSnap.id, ...docSnap.data() };
+
+          // メッセージ数を取得
+          const messagesSnap = await getDocs(
+            collection(db, "topics", docSnap.id, "messages")
+          );
+          topicData.messageCount = messagesSnap.size;
+
+          return topicData;
+        })
+      );
+
       setTopics(topicList);
     };
 
-    fetchTopics();
+    fetchTopicsWithMessageCount();
   }, []);
 
   const filteredTopics = topics.filter((topic) => {
@@ -91,6 +104,10 @@ const Home = () => {
                     sx={{ mt: 1 }}
                   />
                 )}
+
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  {topic.messageCount ?? 0}件の書き込み
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
