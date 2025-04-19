@@ -10,7 +10,7 @@ import Header from "./components/Header";
 
 const App = () => {
   return (
-    <Router basename="/technovation_girls_2025"> {/* ← これ追加 */}
+    <Router basename="/technovation_girls_2025"> 
       <Header />
       <Routes>
         <Route path="/login" element={<Login />} />
