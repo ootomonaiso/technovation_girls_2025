@@ -54,11 +54,16 @@ jobs:
           cat build/index.html || echo "❌ index.html not found"
         working-directory: pro
 
+      - name: 📤 Prepare artifact directory
+        run: |
+          cd pro
+          mv build ../build
+
       - name: 📤 Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: github-pages
-          path: pro/build
+          path: build
 
       - name: 🚀 Deploy to GitHub Pages
         uses: actions/deploy-pages@v1
