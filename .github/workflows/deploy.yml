@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main
+      - main  # ← デプロイ対象ブランチ（必要に応じて変更）
 
 permissions:
   contents: read
@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: deploy-${{ github.run_id }}
+  group: deploy-${{ github.run_id }}  # キャッシュ回避のため毎回ユニーク
   cancel-in-progress: true
 
 jobs:
@@ -23,18 +23,18 @@ jobs:
         working-directory: pro
 
     steps:
-      - name: Checkout
+      - name: ✅ Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: 🧰 Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm ci
 
-      - name: Inject Firebase env vars
+      - name: 🔐 Inject Firebase env variables
         run: |
           echo "REACT_APP_FIREBASE_API_KEY=${{ secrets.REACT_APP_FIREBASE_API_KEY }}" >> .env
           echo "REACT_APP_FIREBASE_AUTH_DOMAIN=${{ secrets.REACT_APP_FIREBASE_AUTH_DOMAIN }}" >> .env
@@ -43,16 +43,25 @@ jobs:
           echo "REACT_APP_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}" >> .env
           echo "REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}" >> .env
 
-      - name: Build
+      - name: 🛠️ Build project
         run: npm run build
 
-      - name: Upload artifact (fixed)
+      - name: 🔍 Check if build directory exists
+        run: |
+          echo "Current working directory:"
+          pwd
+          echo "Listing contents:"
+          ls -la
+          echo "Contents of build/:"
+          ls -la build || echo "⚠️ build directory not found"
+
+      - name: 📤 Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: github-pages
-          path: build  # ← pro/内にいるので build でOK！
+          path: build  # ← pro/内のbuildディレクトリ（working-directoryがpro）
 
-      - name: Deploy to GitHub Pages
+      - name: 🚀 Deploy to GitHub Pages
         uses: actions/deploy-pages@v1
         with:
           artifact_name: github-pages
