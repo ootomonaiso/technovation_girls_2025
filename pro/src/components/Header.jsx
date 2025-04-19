@@ -51,10 +51,9 @@ const Header = () => {
           whiteSpace: "nowrap",
         }}
       >
-        ここにタイトルを挿入
+        おきてがみ
       </div>
 
-      {/* 右側（設定・ログアウト） */}
       <Box display="flex" alignItems="center" gap={1}>
         {user && (
           <Tooltip title="設定">
