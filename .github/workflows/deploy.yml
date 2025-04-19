@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: github-pages
-          path: pro/build  # ← ここがポイント！
+          path: pro/build
 
       - name: 🚀 Deploy to GitHub Pages
         uses: actions/deploy-pages@v1
