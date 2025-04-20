@@ -22,15 +22,21 @@ export const ThemeProvider = ({ children }) => {
     return createTheme({
       palette: {
         mode: mode === "light" ? "light" : "dark",
-        ...(accessibility === "high-contrast" && {
-          background: {
-            default: "#000",
-            paper: "#111",
-          },
-          text: {
-            primary: "#fff",
-          },
-        }),
+        ...(accessibility === "high-contrast"
+          ? {
+              background: {
+                default: "#fff",
+                paper: "#fff",
+              },
+              text: {
+                primary: "#000",
+              },
+              primary: {
+                main: "#004d40", // 深緑
+                contrastText: "#ffffff", // 白文字
+              },
+            }
+          : {}),
       },
       typography: {
         fontSize: fontSize,
