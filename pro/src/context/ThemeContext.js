@@ -33,7 +33,7 @@ export const ThemeProvider = ({ children }) => {
         }),
       },
       typography: {
-        fontSize: fontSize, // ← 両モード共に反映
+        fontSize: fontSize,
       },
       components: {
         MuiButton: {
