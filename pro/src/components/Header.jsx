@@ -1,16 +1,23 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import { Box, IconButton, Tooltip, useMediaQuery } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  Tooltip,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import MenuIcon from "@mui/icons-material/Menu";
 import { auth } from "../firebaseConfig";
-import { useAuth } from "../context/AuthContext"; // ← 追加
+import { useAuth } from "../context/AuthContext";
 
 const Header = () => {
   const navigate = useNavigate();
-  const { user } = useAuth(); // ← 変更！
+  const { user } = useAuth();
   const isMobile = useMediaQuery("(max-width:600px)");
+  const theme = useTheme(); // ← テーマを取得
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -21,8 +28,8 @@ const Header = () => {
     <header
       style={{
         padding: "12px 16px",
-        background: "#1976d2",
-        color: "#fff",
+        background: theme.palette.primary.main,         // ← 背景にテーマ色
+        color: theme.palette.primary.contrastText,      // ← テキスト色
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -30,11 +37,24 @@ const Header = () => {
       }}
     >
       <Box display="flex" alignItems="center" gap={2}>
-        <Link to="/" style={{ color: "#fff", textDecoration: "none", fontWeight: "bold" }}>
+        <Link
+          to="/"
+          style={{
+            color: theme.palette.primary.contrastText,
+            textDecoration: "none",
+            fontWeight: "bold",
+          }}
+        >
           {isMobile ? "🏠" : "ホーム"}
         </Link>
         {user && !isMobile && (
-          <Link to="/create" style={{ color: "#fff", textDecoration: "none" }}>
+          <Link
+            to="/create"
+            style={{
+              color: theme.palette.primary.contrastText,
+              textDecoration: "none",
+            }}
+          >
             トピック作成
           </Link>
         )}
@@ -56,7 +76,7 @@ const Header = () => {
       <Box display="flex" alignItems="center" gap={1}>
         {user && (
           <Tooltip title="設定">
-            <IconButton component={Link} to="/setting" sx={{ color: "#fff" }}>
+            <IconButton component={Link} to="/setting" sx={{ color: theme.palette.primary.contrastText }}>
               <SettingsIcon fontSize={isMobile ? "small" : "medium"} />
             </IconButton>
           </Tooltip>
@@ -65,7 +85,8 @@ const Header = () => {
           <button
             onClick={handleLogout}
             style={{
-              background: "white",
+              background: theme.palette.primary.contrastText,
+              color: theme.palette.primary.main,
               border: "none",
               borderRadius: 4,
               padding: "6px 12px",
@@ -77,7 +98,7 @@ const Header = () => {
         )}
         {user && isMobile && (
           <Tooltip title="ログアウト">
-            <IconButton onClick={handleLogout} sx={{ color: "#fff" }}>
+            <IconButton onClick={handleLogout} sx={{ color: theme.palette.primary.contrastText }}>
               <MenuIcon />
             </IconButton>
           </Tooltip>
