@@ -1,14 +1,15 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../firebaseConfig";
 import { signOut } from "firebase/auth";
 import { Box, IconButton, Tooltip, useMediaQuery } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import MenuIcon from "@mui/icons-material/Menu";
+import { auth } from "../firebaseConfig";
+import { useAuth } from "../context/AuthContext"; // ← 追加
 
 const Header = () => {
   const navigate = useNavigate();
-  const user = auth.currentUser;
+  const { user } = useAuth(); // ← 変更！
   const isMobile = useMediaQuery("(max-width:600px)");
 
   const handleLogout = async () => {
@@ -39,7 +40,6 @@ const Header = () => {
         )}
       </Box>
 
-      {/* 中央タイトル */}
       <div
         style={{
           position: "absolute",
