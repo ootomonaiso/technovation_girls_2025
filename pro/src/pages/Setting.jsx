@@ -1,9 +1,19 @@
 import React from "react";
 import { useFontSize } from "../context/FontSizeContext";
-import { Container, Typography, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import { ThemeContext } from "../context/ThemeContext";
+import { useContext } from "react";
+import {
+  Container,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
 
 const Setting = () => {
   const { fontSizeKey, setFontSizeKey } = useFontSize();
+  const { accessibility, setAccessibility } = useContext(ThemeContext);
 
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
@@ -11,7 +21,7 @@ const Setting = () => {
         表示設定
       </Typography>
 
-      <FormControl fullWidth>
+      <FormControl fullWidth sx={{ mt: 2 }}>
         <InputLabel id="fontsize-label">文字サイズ</InputLabel>
         <Select
           labelId="fontsize-label"
@@ -25,8 +35,22 @@ const Setting = () => {
         </Select>
       </FormControl>
 
+      <FormControl fullWidth sx={{ mt: 4 }}>
+        <InputLabel id="accessibility-label">アクセシビリティ</InputLabel>
+        <Select
+          labelId="accessibility-label"
+          value={accessibility}
+          label="アクセシビリティ"
+          onChange={(e) => setAccessibility(e.target.value)}
+        >
+          <MenuItem value="default">通常</MenuItem>
+          <MenuItem value="high-contrast">👵 高コントラスト</MenuItem>
+          <MenuItem value="colorblind">🎨 色覚サポート</MenuItem>
+        </Select>
+      </FormControl>
+
       <Typography sx={{ mt: 4 }}>
-        プレビュー：これは現在の文字サイズです。
+        プレビュー：これは現在の文字サイズと配色です。
       </Typography>
     </Container>
   );

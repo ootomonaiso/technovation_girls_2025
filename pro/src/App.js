@@ -1,7 +1,8 @@
+// App.js
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
-import { useFontSize } from "./context/FontSizeContext";
+import { CssBaseline } from "@mui/material";
+import { ThemeProvider } from "./context/ThemeContext"; // ← 自作 ThemeContext を使用
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -10,19 +11,11 @@ import CreateTopic from "./pages/CreateTopic";
 import SetupUser from "./pages/SetupUser";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
-import Setting from "./pages/Setting"; // ← 追加
+import Setting from "./pages/Setting";
 
 const App = () => {
-  const { fontSize } = useFontSize(); // ← フォントサイズ取得
-
-  const theme = createTheme({
-    typography: {
-      fontSize: fontSize, // ← ここに反映
-    },
-  });
-
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider> {/* ← MUIとcontextを内包 */}
       <CssBaseline />
       <Router basename="/technovation_girls_2025">
         <Header />
