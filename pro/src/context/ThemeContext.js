@@ -45,7 +45,31 @@ export const ThemeProvider = ({ children }) => {
         MuiButton: {
           styleOverrides: {
             root: {
-              border: undefined,
+              textTransform: "none",
+              fontWeight: "bold",
+              borderRadius: 8,
+            },
+          },
+          defaultProps: {
+            color: "primary",
+          },
+        },
+        MuiLink: {
+          styleOverrides: {
+            root: {
+              color: "inherit",
+              textDecoration: "none",
+              fontWeight: "bold",
+              "&:hover": {
+                textDecoration: "underline",
+              },
+            },
+          },
+        },
+        MuiIconButton: {
+          styleOverrides: {
+            root: {
+              color: "inherit",
             },
           },
         },
