@@ -5,7 +5,7 @@ export const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [mode, setMode] = useState("light");
-  const [accessibility, setAccessibility] = useState("default"); // "default" | "high-contrast" | "colorblind"
+  const [accessibility, setAccessibility] = useState("default"); 
 
   useEffect(() => {
     const saved = localStorage.getItem("accessibility");

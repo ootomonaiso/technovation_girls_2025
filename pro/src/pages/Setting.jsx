@@ -44,8 +44,7 @@ const Setting = () => {
           onChange={(e) => setAccessibility(e.target.value)}
         >
           <MenuItem value="default">通常</MenuItem>
-          <MenuItem value="high-contrast">👵 高コントラスト</MenuItem>
-          <MenuItem value="colorblind">🎨 色覚サポート</MenuItem>
+          <MenuItem value="high-contrast">高コントラスト</MenuItem>
         </Select>
       </FormControl>
 
