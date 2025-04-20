@@ -1,11 +1,13 @@
 import React, { createContext, useState, useMemo, useEffect } from "react";
 import { ThemeProvider as MuiThemeProvider, createTheme } from "@mui/material/styles";
+import { useFontSize } from "./FontSizeContext";
 
 export const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [mode, setMode] = useState("light");
-  const [accessibility, setAccessibility] = useState("default"); 
+  const [accessibility, setAccessibility] = useState("default"); // "default" | "high-contrast"
+  const { fontSize } = useFontSize();
 
   useEffect(() => {
     const saved = localStorage.getItem("accessibility");
@@ -29,26 +31,21 @@ export const ThemeProvider = ({ children }) => {
             primary: "#fff",
           },
         }),
-        ...(accessibility === "colorblind" && {
-          primary: { main: "#007acc" },
-          secondary: { main: "#ff9800" },
-        }),
       },
       typography: {
-        fontSize: accessibility === "high-contrast" ? 18 : 14,
+        fontSize: fontSize, // ← 両モード共に反映
       },
       components: {
         MuiButton: {
           styleOverrides: {
             root: {
-              border:
-                accessibility === "colorblind" ? "2px dashed #1976d2" : undefined,
+              border: undefined,
             },
           },
         },
       },
     });
-  }, [mode, accessibility]);
+  }, [mode, accessibility, fontSize]);
 
   return (
     <ThemeContext.Provider value={{ mode, setMode, accessibility, setAccessibility }}>
