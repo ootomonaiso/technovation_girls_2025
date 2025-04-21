@@ -70,7 +70,7 @@ const Header = () => {
           whiteSpace: "nowrap",
         }}
       >
-        おきてがみ
+        Smile Link
       </div>
 
       <Box display="flex" alignItems="center" gap={1}>
